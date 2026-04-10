@@ -141,7 +141,25 @@ function togglePause() {
   render();
 }
 
+function isTypingTarget(target) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName;
+  return (
+    target.isContentEditable ||
+    tagName === "INPUT" ||
+    tagName === "TEXTAREA" ||
+    tagName === "SELECT"
+  );
+}
+
 function handleKeydown(event) {
+  if (isTypingTarget(event.target)) {
+    return;
+  }
+
   const key = event.key.toLowerCase();
   const directionByKey = {
     arrowup: "UP",
