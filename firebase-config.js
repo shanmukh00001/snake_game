@@ -1,8 +1,9 @@
 export const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID",
+  apiKey: "AIzaSyB-boZUruDqEAkoa0EbrLQwIP0JOvDviHw",
+  authDomain: "sanke-game-fe38f.firebaseapp.com",
+  projectId: "sanke-game-fe38f",
+  storageBucket: "sanke-game-fe38f.firebasestorage.app",
+  messagingSenderId: "635908410543",
+  appId: "1:635908410543:web:3b48085fe863559b1d985a",
+  measurementId: "G-XEYNTXFT41"
 };
