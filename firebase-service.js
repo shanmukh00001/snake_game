@@ -13,19 +13,12 @@ import {
   serverTimestamp,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
-
-function hasFirebaseConfig(config) {
-  return Object.values(config).every(
-    (value) => typeof value === "string" && value && !value.startsWith("REPLACE_WITH_"),
-  );
-}
-
-const enabled = hasFirebaseConfig(firebaseConfig);
-const app = enabled ? initializeApp(firebaseConfig) : null;
-const auth = enabled ? getAuth(app) : null;
-const db = enabled ? getFirestore(app) : null;
-const googleProvider = enabled ? new GoogleAuthProvider() : null;
+let enabled = false;
+let app = null;
+let auth = null;
+let db = null;
+let googleProvider = null;
+let initPromise = null;
 
 export function isFirebaseEnabled() {
   return enabled;
@@ -49,6 +42,8 @@ export function watchAuthState(callback) {
 }
 
 export async function loginWithGoogle() {
+  await ensureFirebaseReady();
+
   if (!enabled) {
     throw new Error("Firebase is not configured yet.");
   }
@@ -85,6 +80,8 @@ export function getAuthErrorMessage(error) {
 }
 
 export async function logoutCurrentUser() {
+  await ensureFirebaseReady();
+
   if (!enabled) {
     return;
   }
@@ -93,6 +90,8 @@ export async function logoutCurrentUser() {
 }
 
 export async function loadUserProfile(uid) {
+  await ensureFirebaseReady();
+
   if (!enabled) {
     return null;
   }
@@ -102,6 +101,8 @@ export async function loadUserProfile(uid) {
 }
 
 export async function saveHighScore(user, score) {
+  await ensureFirebaseReady();
+
   if (!enabled || !user) {
     return null;
   }
@@ -149,5 +150,83 @@ async function ensureUserProfile(user) {
       updatedAt: serverTimestamp(),
     },
     { merge: true },
+  );
+}
+
+export async function initializeFirebase() {
+  if (initPromise) {
+    return initPromise;
+  }
+
+  initPromise = (async () => {
+    const config = await loadFirebaseConfig();
+
+    if (!hasFirebaseConfig(config)) {
+      enabled = false;
+      return false;
+    }
+
+    app = initializeApp(config);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    googleProvider = new GoogleAuthProvider();
+    enabled = true;
+    return true;
+  })();
+
+  return initPromise;
+}
+
+async function ensureFirebaseReady() {
+  await initializeFirebase();
+}
+
+async function loadFirebaseConfig() {
+  const runtimeConfig = await fetchRuntimeConfig();
+  if (hasFirebaseConfig(runtimeConfig)) {
+    return runtimeConfig;
+  }
+
+  const localConfig = await fetchLocalConfig();
+  if (hasFirebaseConfig(localConfig)) {
+    return localConfig;
+  }
+
+  return null;
+}
+
+async function fetchRuntimeConfig() {
+  try {
+    const response = await fetch("/api/firebase-config", { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchLocalConfig() {
+  try {
+    const response = await fetch("./firebase-config.local.json", { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
+function hasFirebaseConfig(config) {
+  if (!config) {
+    return false;
+  }
+
+  return Object.values(config).every(
+    (value) => typeof value === "string" && value && !value.startsWith("REPLACE_WITH_"),
   );
 }

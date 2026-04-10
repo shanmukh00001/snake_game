@@ -6,6 +6,7 @@ import {
 } from "./snake-core.js";
 import {
   getAuthErrorMessage,
+  initializeFirebase,
   isFirebaseEnabled,
   isSecureAuthContext,
   loginWithGoogle,
@@ -206,7 +207,7 @@ function updateAuthUi() {
 
   if (!configured) {
     authState.textContent = "Firebase not set";
-    setAuthMessage("Add your Firebase project values in firebase-config.js to enable sign in.");
+    setAuthMessage("Firebase config is missing. Add the Vercel environment variables or create firebase-config.local.json for local testing.");
     bestScore.textContent = "-";
     return;
   }
@@ -267,10 +268,6 @@ async function handleLogout() {
 buildBoard();
 render();
 gameLoop();
-updateAuthUi();
-watchAuthState((user) => {
-  void hydrateUserProfile(user);
-});
 
 document.addEventListener("keydown", handleKeydown);
 pauseButton.addEventListener("click", togglePause);
@@ -281,5 +278,15 @@ logoutButton.addEventListener("click", handleLogout);
 for (const button of controlButtons) {
   button.addEventListener("click", () => {
     queueDirection(button.dataset.direction);
+  });
+}
+
+void startAuth();
+
+async function startAuth() {
+  await initializeFirebase();
+  updateAuthUi();
+  watchAuthState((user) => {
+    void hydrateUserProfile(user);
   });
 }
