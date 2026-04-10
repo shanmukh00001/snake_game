@@ -23,9 +23,11 @@ Then visit `http://localhost:8000`.
 3. Enable `Authentication` and turn on `Google`.
 4. Create a `Cloud Firestore` database.
 5. Add your deployed site domain in `Authentication > Settings > Authorized domains` if you are running on Vercel or another host.
-6. In Vercel, add these environment variables for the project:
+6. If you deploy on Vercel, add these environment variables for the project:
    `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`
-7. For local testing, copy [firebase-config.local.example.json](C:\Users\Shannu\OneDrive - Indian Institute of Technology Indian School of Mines Dhanbad\Documents\New project\firebase-config.local.example.json) to `firebase-config.local.json` and fill in your values. This local file is gitignored.
+7. If you deploy on GitHub Pages, switch Pages source to `GitHub Actions` and add repository secrets with the same names:
+   `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`
+8. For local testing, copy [firebase-config.local.example.json](C:\Users\Shannu\OneDrive - Indian Institute of Technology Indian School of Mines Dhanbad\Documents\New project\firebase-config.local.example.json) to `firebase-config.local.json` and fill in your values. This local file is gitignored.
 
 Use Firestore rules like this so each signed-in user can only read and write their own score:
 

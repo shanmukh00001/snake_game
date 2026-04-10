@@ -69,7 +69,7 @@ export function getAuthErrorMessage(error) {
   }
 
   if (code === "auth/unauthorized-domain") {
-    return "This domain is not authorized in Firebase yet. Add your Vercel domain under Authentication > Settings > Authorized domains.";
+    return "This domain is not authorized in Firebase yet. Add your live site domain under Authentication > Settings > Authorized domains.";
   }
 
   if (code === "auth/network-request-failed") {
@@ -182,6 +182,11 @@ async function ensureFirebaseReady() {
 }
 
 async function loadFirebaseConfig() {
+  const staticRuntimeConfig = await fetchStaticRuntimeConfig();
+  if (hasFirebaseConfig(staticRuntimeConfig)) {
+    return staticRuntimeConfig;
+  }
+
   const runtimeConfig = await fetchRuntimeConfig();
   if (hasFirebaseConfig(runtimeConfig)) {
     return runtimeConfig;
@@ -193,6 +198,19 @@ async function loadFirebaseConfig() {
   }
 
   return null;
+}
+
+async function fetchStaticRuntimeConfig() {
+  try {
+    const response = await fetch("./firebase-config.runtime.json", { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
+  }
 }
 
 async function fetchRuntimeConfig() {
