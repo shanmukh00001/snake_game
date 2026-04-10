@@ -151,6 +151,12 @@ function handleKeydown(event) {
     d: "RIGHT",
   };
 
+  if (key === "enter" && (gameState.status === "gameover" || gameState.status === "won")) {
+    event.preventDefault();
+    resetGame();
+    return;
+  }
+
   if (key === " ") {
     event.preventDefault();
     togglePause();
