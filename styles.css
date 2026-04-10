@@ -145,6 +145,18 @@ input {
   background: #fffdf8;
 }
 
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.visibility-button {
+  min-width: 44px;
+  padding: 10px 12px;
+}
+
 .auth-header {
   display: flex;
   align-items: flex-start;

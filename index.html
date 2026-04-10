@@ -37,14 +37,47 @@
 
               <label class="field">
                 <span>Password</span>
-                <input
-                  id="password-input"
-                  name="password"
-                  type="password"
-                  autocomplete="current-password"
-                  minlength="6"
-                  required
-                />
+                <span class="input-row">
+                  <input
+                    id="password-input"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    minlength="6"
+                    required
+                  />
+                  <button
+                    id="password-visibility-button"
+                    class="visibility-button"
+                    type="button"
+                    aria-label="Show password"
+                    title="Show password"
+                  >
+                    &#128065;
+                  </button>
+                </span>
+              </label>
+
+              <label class="field">
+                <span>Confirm Password</span>
+                <span class="input-row">
+                  <input
+                    id="confirm-password-input"
+                    name="confirmPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="6"
+                  />
+                  <button
+                    id="confirm-password-visibility-button"
+                    class="visibility-button"
+                    type="button"
+                    aria-label="Show confirm password"
+                    title="Show confirm password"
+                  >
+                    &#128065;
+                  </button>
+                </span>
               </label>
 
               <div class="actions auth-actions">

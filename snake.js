@@ -5,6 +5,7 @@ import {
   stepGame,
 } from "./snake-core.js";
 import {
+  getAuthErrorMessage,
   isFirebaseEnabled,
   loadUserProfile,
   loginWithEmail,
@@ -24,11 +25,16 @@ const controlButtons = Array.from(document.querySelectorAll("[data-direction]"))
 const authForm = document.querySelector("#auth-form");
 const emailInput = document.querySelector("#email-input");
 const passwordInput = document.querySelector("#password-input");
+const confirmPasswordInput = document.querySelector("#confirm-password-input");
 const authState = document.querySelector("#auth-state");
 const authMessage = document.querySelector("#auth-message");
 const loginButton = document.querySelector("#login-button");
 const signupButton = document.querySelector("#signup-button");
 const logoutButton = document.querySelector("#logout-button");
+const passwordVisibilityButton = document.querySelector("#password-visibility-button");
+const confirmPasswordVisibilityButton = document.querySelector(
+  "#confirm-password-visibility-button",
+);
 
 const cells = [];
 let gameState = createInitialState();
@@ -152,6 +158,14 @@ function isTypingTarget(target) {
   );
 }
 
+function togglePasswordVisibility(input, button, showLabel, hideLabel) {
+  const showingPassword = input.type === "text";
+  input.type = showingPassword ? "password" : "text";
+  const nextLabel = showingPassword ? showLabel : hideLabel;
+  button.setAttribute("aria-label", nextLabel);
+  button.setAttribute("title", nextLabel);
+}
+
 function handleKeydown(event) {
   if (isTypingTarget(event.target)) {
     return;
@@ -222,6 +236,7 @@ function updateAuthUi() {
 
   emailInput.disabled = !configured || currentUser !== null;
   passwordInput.disabled = !configured || currentUser !== null;
+  confirmPasswordInput.disabled = !configured || currentUser !== null;
   loginButton.disabled = !configured || currentUser !== null;
   signupButton.disabled = !configured || currentUser !== null;
   logoutButton.hidden = currentUser === null;
@@ -275,27 +290,40 @@ async function handleAuthSubmit(event) {
   try {
     await loginWithEmail(email, password);
     passwordInput.value = "";
+    confirmPasswordInput.value = "";
     setAuthMessage("Signed in successfully.");
   } catch (error) {
-    setAuthMessage(error.message);
+    setAuthMessage(getAuthErrorMessage(error));
   }
 }
 
 async function handleSignup() {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
 
   if (!email || !password) {
     setAuthMessage("Enter both email and password.");
     return;
   }
 
+  if (!confirmPassword) {
+    setAuthMessage("Please confirm your password.");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    setAuthMessage("Password and confirm password must match.");
+    return;
+  }
+
   try {
     await registerWithEmail(email, password);
     passwordInput.value = "";
+    confirmPasswordInput.value = "";
     setAuthMessage("Account created.");
   } catch (error) {
-    setAuthMessage(error.message);
+    setAuthMessage(getAuthErrorMessage(error));
   }
 }
 
@@ -304,9 +332,10 @@ async function handleLogout() {
     await logoutCurrentUser();
     emailInput.value = "";
     passwordInput.value = "";
+    confirmPasswordInput.value = "";
     setAuthMessage("Signed out.");
   } catch (error) {
-    setAuthMessage(error.message);
+    setAuthMessage(getAuthErrorMessage(error));
   }
 }
 
@@ -324,6 +353,22 @@ restartButton.addEventListener("click", resetGame);
 authForm.addEventListener("submit", handleAuthSubmit);
 signupButton.addEventListener("click", handleSignup);
 logoutButton.addEventListener("click", handleLogout);
+passwordVisibilityButton.addEventListener("click", () => {
+  togglePasswordVisibility(
+    passwordInput,
+    passwordVisibilityButton,
+    "Show password",
+    "Hide password",
+  );
+});
+confirmPasswordVisibilityButton.addEventListener("click", () => {
+  togglePasswordVisibility(
+    confirmPasswordInput,
+    confirmPasswordVisibilityButton,
+    "Show confirm password",
+    "Hide confirm password",
+  );
+});
 
 for (const button of controlButtons) {
   button.addEventListener("click", () => {

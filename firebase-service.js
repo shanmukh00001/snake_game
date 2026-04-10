@@ -59,6 +59,36 @@ export async function loginWithEmail(email, password) {
   return result.user;
 }
 
+export function getAuthErrorMessage(error) {
+  const code = error?.code ?? "";
+
+  if (code === "auth/configuration-not-found") {
+    return "Firebase Email/Password sign-in is not fully configured. Enable Authentication > Sign-in method > Email/Password and add your site domain in Authentication > Settings > Authorized domains.";
+  }
+
+  if (code === "auth/invalid-credential") {
+    return "Invalid email or password.";
+  }
+
+  if (code === "auth/invalid-email") {
+    return "Enter a valid email address.";
+  }
+
+  if (code === "auth/email-already-in-use") {
+    return "This email is already registered. Try signing in instead.";
+  }
+
+  if (code === "auth/weak-password") {
+    return "Password should be at least 6 characters.";
+  }
+
+  if (code === "auth/network-request-failed") {
+    return "Network error while contacting Firebase. Check your internet connection and try again.";
+  }
+
+  return error?.message ?? "Something went wrong while talking to Firebase.";
+}
+
 export async function logoutCurrentUser() {
   if (!enabled) {
     return;
