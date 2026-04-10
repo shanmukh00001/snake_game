@@ -1,8 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
   getAuth,
+  getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithRedirect,
   signInWithPopup,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
@@ -48,9 +50,18 @@ export async function loginWithGoogle() {
     throw new Error("Firebase is not configured yet.");
   }
 
-  const result = await signInWithPopup(auth, googleProvider);
-  await ensureUserProfile(result.user);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    await ensureUserProfile(result.user);
+    return result.user;
+  } catch (error) {
+    if (error?.code === "auth/popup-blocked") {
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export function getAuthErrorMessage(error) {
@@ -175,6 +186,22 @@ export async function initializeFirebase() {
   })();
 
   return initPromise;
+}
+
+export async function completePendingGoogleRedirect() {
+  await ensureFirebaseReady();
+
+  if (!enabled) {
+    return null;
+  }
+
+  const result = await getRedirectResult(auth);
+  if (result?.user) {
+    await ensureUserProfile(result.user);
+    return result.user;
+  }
+
+  return null;
 }
 
 async function ensureFirebaseReady() {

@@ -5,6 +5,7 @@ import {
   stepGame,
 } from "./snake-core.js";
 import {
+  completePendingGoogleRedirect,
   getAuthErrorMessage,
   initializeFirebase,
   isFirebaseEnabled,
@@ -249,8 +250,13 @@ async function hydrateUserProfile(user) {
 
 async function handleGoogleLogin() {
   try {
-    await loginWithGoogle();
-    setAuthMessage("Signed in successfully.");
+    const user = await loginWithGoogle();
+    if (user) {
+      setAuthMessage("Signed in successfully.");
+      return;
+    }
+
+    setAuthMessage("Continuing with Google sign-in...");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
   }
@@ -285,6 +291,15 @@ void startAuth();
 
 async function startAuth() {
   await initializeFirebase();
+  try {
+    const redirectUser = await completePendingGoogleRedirect();
+    if (redirectUser) {
+      setAuthMessage("Signed in successfully.");
+    }
+  } catch (error) {
+    setAuthMessage(getAuthErrorMessage(error));
+  }
+
   updateAuthUi();
   watchAuthState((user) => {
     void hydrateUserProfile(user);
