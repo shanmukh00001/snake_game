@@ -155,8 +155,12 @@ function isTypingTarget(target) {
   );
 }
 
+function isTypingActive() {
+  return isTypingTarget(document.activeElement);
+}
+
 function handleKeydown(event) {
-  if (isTypingTarget(event.target)) {
+  if (isTypingTarget(event.target) || isTypingActive()) {
     return;
   }
 
@@ -355,6 +359,12 @@ restartButton.addEventListener("click", resetGame);
 createAccountButton.addEventListener("click", handleCreateAccount);
 signInButton.addEventListener("click", handleSignIn);
 logoutButton.addEventListener("click", handleLogout);
+
+for (const input of [emailInput, passwordInput, confirmPasswordInput]) {
+  input.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+  });
+}
 
 for (const button of controlButtons) {
   button.addEventListener("click", () => {
