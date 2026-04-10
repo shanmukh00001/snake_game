@@ -61,6 +61,11 @@ function render() {
   score.textContent = String(gameState.score);
   pauseButton.textContent = gameState.status === "paused" ? "Resume" : "Pause";
 
+  if (gameState.status === "ready") {
+    status.textContent = "Press an arrow key, WASD, or a touch button to start.";
+    return;
+  }
+
   if (gameState.status === "running") {
     status.textContent = "Eat food, avoid the walls, and don't hit yourself.";
     return;
@@ -88,7 +93,7 @@ function resetGame() {
 function queueDirection(direction) {
   pendingDirection = direction;
 
-  if (gameState.status === "paused") {
+  if (gameState.status === "ready" || gameState.status === "paused") {
     gameState = {
       ...gameState,
       status: "running",
@@ -97,7 +102,11 @@ function queueDirection(direction) {
 }
 
 function togglePause() {
-  if (gameState.status === "gameover" || gameState.status === "won") {
+  if (
+    gameState.status === "ready" ||
+    gameState.status === "gameover" ||
+    gameState.status === "won"
+  ) {
     return;
   }
 

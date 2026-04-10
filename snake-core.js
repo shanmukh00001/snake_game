@@ -29,7 +29,7 @@ export function createInitialState(randomFn = Math.random) {
     direction: "RIGHT",
     food: placeFood(snake, randomFn),
     score: 0,
-    status: "running",
+    status: "ready",
   };
 }
 
