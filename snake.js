@@ -4,17 +4,37 @@ import {
   createInitialState,
   stepGame,
 } from "./snake-core.js";
+import {
+  isFirebaseEnabled,
+  loadUserProfile,
+  loginWithEmail,
+  logoutCurrentUser,
+  registerWithEmail,
+  saveHighScore,
+  watchAuthState,
+} from "./firebase-service.js";
 
 const board = document.querySelector("#board");
 const score = document.querySelector("#score");
+const bestScore = document.querySelector("#best-score");
 const status = document.querySelector("#status");
 const pauseButton = document.querySelector("#pause-button");
 const restartButton = document.querySelector("#restart-button");
 const controlButtons = Array.from(document.querySelectorAll("[data-direction]"));
+const authForm = document.querySelector("#auth-form");
+const emailInput = document.querySelector("#email-input");
+const passwordInput = document.querySelector("#password-input");
+const authState = document.querySelector("#auth-state");
+const authMessage = document.querySelector("#auth-message");
+const loginButton = document.querySelector("#login-button");
+const signupButton = document.querySelector("#signup-button");
+const logoutButton = document.querySelector("#logout-button");
 
 const cells = [];
 let gameState = createInitialState();
 let pendingDirection = null;
+let currentUser = null;
+let lifetimeBest = null;
 
 function buildBoard() {
   const fragment = document.createDocumentFragment();
@@ -59,6 +79,7 @@ function render() {
   }
 
   score.textContent = String(gameState.score);
+  bestScore.textContent = lifetimeBest == null ? "-" : String(lifetimeBest);
   pauseButton.textContent = gameState.status === "paused" ? "Resume" : "Pause";
 
   if (gameState.status === "ready") {
@@ -150,18 +171,135 @@ function gameLoop() {
     gameState = stepGame(gameState, pendingDirection);
     pendingDirection = null;
     render();
+    void syncHighScore();
   }
 
   window.setTimeout(gameLoop, TICK_MS);
 }
 
+async function syncHighScore() {
+  if (!currentUser || gameState.score <= 0) {
+    return;
+  }
+
+  const savedBest = await saveHighScore(currentUser, gameState.score);
+  if (savedBest != null && savedBest !== lifetimeBest) {
+    lifetimeBest = savedBest;
+    render();
+  }
+}
+
+function setAuthMessage(message) {
+  authMessage.textContent = message;
+}
+
+function updateAuthUi() {
+  const configured = isFirebaseEnabled();
+
+  emailInput.disabled = !configured || currentUser !== null;
+  passwordInput.disabled = !configured || currentUser !== null;
+  loginButton.disabled = !configured || currentUser !== null;
+  signupButton.disabled = !configured || currentUser !== null;
+  logoutButton.hidden = currentUser === null;
+
+  if (!configured) {
+    authState.textContent = "Firebase not set";
+    setAuthMessage("Add your Firebase project values in firebase-config.js to enable sign in.");
+    bestScore.textContent = "-";
+    return;
+  }
+
+  if (!currentUser) {
+    authState.textContent = "Signed out";
+    setAuthMessage("Sign in to save your lifetime highest score.");
+    lifetimeBest = null;
+    render();
+    return;
+  }
+
+  authState.textContent = currentUser.email ?? "Signed in";
+  setAuthMessage("Your best score is saved automatically.");
+}
+
+async function hydrateUserProfile(user) {
+  if (!user) {
+    currentUser = null;
+    lifetimeBest = null;
+    updateAuthUi();
+    render();
+    return;
+  }
+
+  currentUser = user;
+  const profile = await loadUserProfile(user.uid);
+  lifetimeBest = profile?.highestScore ?? 0;
+  updateAuthUi();
+  render();
+}
+
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    setAuthMessage("Enter both email and password.");
+    return;
+  }
+
+  try {
+    await loginWithEmail(email, password);
+    passwordInput.value = "";
+    setAuthMessage("Signed in successfully.");
+  } catch (error) {
+    setAuthMessage(error.message);
+  }
+}
+
+async function handleSignup() {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    setAuthMessage("Enter both email and password.");
+    return;
+  }
+
+  try {
+    await registerWithEmail(email, password);
+    passwordInput.value = "";
+    setAuthMessage("Account created.");
+  } catch (error) {
+    setAuthMessage(error.message);
+  }
+}
+
+async function handleLogout() {
+  try {
+    await logoutCurrentUser();
+    emailInput.value = "";
+    passwordInput.value = "";
+    setAuthMessage("Signed out.");
+  } catch (error) {
+    setAuthMessage(error.message);
+  }
+}
+
 buildBoard();
 render();
 gameLoop();
+updateAuthUi();
+watchAuthState((user) => {
+  void hydrateUserProfile(user);
+});
 
 document.addEventListener("keydown", handleKeydown);
 pauseButton.addEventListener("click", togglePause);
 restartButton.addEventListener("click", resetGame);
+authForm.addEventListener("submit", handleAuthSubmit);
+signupButton.addEventListener("click", handleSignup);
+logoutButton.addEventListener("click", handleLogout);
 
 for (const button of controlButtons) {
   button.addEventListener("click", () => {

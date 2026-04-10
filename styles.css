@@ -55,6 +55,14 @@ body {
   gap: 18px;
 }
 
+.auth-card,
+.score-summary {
+  border: 1px solid var(--button-border);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(235, 226, 208, 0.35);
+}
+
 .topbar,
 .status-row {
   display: flex;
@@ -94,6 +102,12 @@ h1 {
   font-size: 2rem;
 }
 
+.score-summary strong {
+  display: block;
+  font-size: 1.75rem;
+  margin-top: 4px;
+}
+
 .status-row {
   align-items: flex-start;
 }
@@ -115,6 +129,50 @@ button {
 
 button:hover {
   background: #e2d6c1;
+}
+
+button[hidden] {
+  display: none;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--button-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fffdf8;
+}
+
+.auth-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.auth-actions {
+  flex-wrap: wrap;
+}
+
+.auth-state {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .board {
@@ -206,5 +264,10 @@ button:hover {
 
   .actions button {
     flex: 1;
+  }
+
+  .auth-header {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

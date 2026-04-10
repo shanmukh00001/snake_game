@@ -20,6 +20,45 @@
         </div>
 
         <aside class="sidebar">
+          <section class="auth-card" aria-labelledby="auth-title">
+            <div class="auth-header">
+              <div>
+                <p class="eyebrow">Account</p>
+                <h2 id="auth-title">Player Sign In</h2>
+              </div>
+              <p id="auth-state" class="auth-state">Signed out</p>
+            </div>
+
+            <form id="auth-form" class="auth-form">
+              <label class="field">
+                <span>Email</span>
+                <input id="email-input" name="email" type="email" autocomplete="email" required />
+              </label>
+
+              <label class="field">
+                <span>Password</span>
+                <input
+                  id="password-input"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  minlength="6"
+                  required
+                />
+              </label>
+
+              <div class="actions auth-actions">
+                <button id="login-button" type="submit">Sign In</button>
+                <button id="signup-button" type="button">Create Account</button>
+                <button id="logout-button" type="button" hidden>Sign Out</button>
+              </div>
+            </form>
+
+            <p id="auth-message" class="hint">
+              Sign in to save your lifetime highest score.
+            </p>
+          </section>
+
           <div class="topbar">
             <div>
               <p class="eyebrow">Classic Snake</p>
@@ -29,6 +68,11 @@
               <span class="scorecard-label">Score</span>
               <strong id="score">0</strong>
             </div>
+          </div>
+
+          <div class="score-summary">
+            <p class="scorecard-label">Lifetime Best</p>
+            <strong id="best-score">-</strong>
           </div>
 
           <div class="status-row">
