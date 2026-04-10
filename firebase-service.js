@@ -1,11 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
+  createUserWithEmailAndPassword,
   getAuth,
-  getRedirectResult,
-  GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithRedirect,
-  signInWithPopup,
+  signInWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 import {
@@ -19,7 +17,6 @@ let enabled = false;
 let app = null;
 let auth = null;
 let db = null;
-let googleProvider = null;
 let initPromise = null;
 
 export function isFirebaseEnabled() {
@@ -43,44 +40,55 @@ export function watchAuthState(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-export async function loginWithGoogle() {
+export async function createAccountWithEmail(email, password) {
   await ensureFirebaseReady();
 
   if (!enabled) {
     throw new Error("Firebase is not configured yet.");
   }
 
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    await ensureUserProfile(result.user);
-    return result.user;
-  } catch (error) {
-    if (error?.code === "auth/popup-blocked") {
-      await signInWithRedirect(auth, googleProvider);
-      return null;
-    }
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  await ensureUserProfile(result.user);
+  return result.user;
+}
 
-    throw error;
+export async function signInWithEmail(email, password) {
+  await ensureFirebaseReady();
+
+  if (!enabled) {
+    throw new Error("Firebase is not configured yet.");
   }
+
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  await ensureUserProfile(result.user);
+  return result.user;
 }
 
 export function getAuthErrorMessage(error) {
   const code = error?.code ?? "";
 
   if (code === "auth/configuration-not-found") {
-    return "Firebase sign-in is not fully configured. Enable Authentication > Sign-in method > Google and add your site domain in Authentication > Settings > Authorized domains.";
+    return "Firebase sign-in is not fully configured. Enable Authentication > Sign-in method > Email/Password and add your site domain in Authentication > Settings > Authorized domains.";
   }
 
-  if (code === "auth/popup-closed-by-user") {
-    return "The Google sign-in popup was closed before finishing.";
+  if (code === "auth/email-already-in-use") {
+    return "That email already has an account. Use Sign In instead.";
   }
 
-  if (code === "auth/popup-blocked") {
-    return "Your browser blocked the Google sign-in popup. Allow popups for this site and try again.";
+  if (code === "auth/invalid-credential" || code === "auth/user-not-found" || code === "auth/wrong-password") {
+    return "Email or password is incorrect.";
   }
 
   if (code === "auth/unauthorized-domain") {
     return "This domain is not authorized in Firebase yet. Add your live site domain under Authentication > Settings > Authorized domains.";
+  }
+
+  if (code === "auth/invalid-email") {
+    return "Enter a valid email address.";
+  }
+
+  if (code === "auth/weak-password") {
+    return "Password should be at least 6 characters.";
   }
 
   if (code === "auth/network-request-failed") {
@@ -180,28 +188,11 @@ export async function initializeFirebase() {
     app = initializeApp(config);
     auth = getAuth(app);
     db = getFirestore(app);
-    googleProvider = new GoogleAuthProvider();
     enabled = true;
     return true;
   })();
 
   return initPromise;
-}
-
-export async function completePendingGoogleRedirect() {
-  await ensureFirebaseReady();
-
-  if (!enabled) {
-    return null;
-  }
-
-  const result = await getRedirectResult(auth);
-  if (result?.user) {
-    await ensureUserProfile(result.user);
-    return result.user;
-  }
-
-  return null;
 }
 
 async function ensureFirebaseReady() {

@@ -24,20 +24,36 @@
             <div class="auth-header">
               <div>
                 <p class="eyebrow">Account</p>
-                <h2 id="auth-title">Player Sign In</h2>
+                <h2 id="auth-title">Player Account</h2>
               </div>
               <p id="auth-state" class="auth-state">Signed out</p>
             </div>
 
             <div class="auth-form">
+              <label class="field">
+                <span>Email</span>
+                <input id="email-input" type="email" autocomplete="email" />
+              </label>
+
+              <label class="field">
+                <span>Password</span>
+                <input id="password-input" type="password" autocomplete="current-password" />
+              </label>
+
+              <label class="field">
+                <span>Confirm Password</span>
+                <input id="confirm-password-input" type="password" autocomplete="new-password" />
+              </label>
+
               <div class="actions auth-actions">
-                <button id="google-login-button" type="button">Sign In Or Create With Google</button>
+                <button id="create-account-button" type="button">Create Account</button>
+                <button id="sign-in-button" type="button">Sign In</button>
                 <button id="logout-button" type="button" hidden>Sign Out</button>
               </div>
             </div>
 
             <p id="auth-message" class="hint">
-              No separate account is needed. Your first Google sign-in creates your player account automatically.
+              Create a new account once, then sign in later to keep your lifetime best score.
             </p>
           </section>
 

@@ -5,15 +5,15 @@ import {
   stepGame,
 } from "./snake-core.js";
 import {
-  completePendingGoogleRedirect,
+  createAccountWithEmail,
   getAuthErrorMessage,
   initializeFirebase,
   isFirebaseEnabled,
   isSecureAuthContext,
-  loginWithGoogle,
   loadUserProfile,
   logoutCurrentUser,
   saveHighScore,
+  signInWithEmail,
   watchAuthState,
 } from "./firebase-service.js";
 
@@ -26,7 +26,11 @@ const restartButton = document.querySelector("#restart-button");
 const controlButtons = Array.from(document.querySelectorAll("[data-direction]"));
 const authState = document.querySelector("#auth-state");
 const authMessage = document.querySelector("#auth-message");
-const googleLoginButton = document.querySelector("#google-login-button");
+const emailInput = document.querySelector("#email-input");
+const passwordInput = document.querySelector("#password-input");
+const confirmPasswordInput = document.querySelector("#confirm-password-input");
+const createAccountButton = document.querySelector("#create-account-button");
+const signInButton = document.querySelector("#sign-in-button");
 const logoutButton = document.querySelector("#logout-button");
 
 const cells = [];
@@ -203,7 +207,11 @@ function updateAuthUi() {
   const secureAuth = isSecureAuthContext();
   const authAvailable = configured && secureAuth;
 
-  googleLoginButton.disabled = !authAvailable || currentUser !== null;
+  emailInput.disabled = !authAvailable || currentUser !== null;
+  passwordInput.disabled = !authAvailable || currentUser !== null;
+  confirmPasswordInput.disabled = !authAvailable || currentUser !== null;
+  createAccountButton.disabled = !authAvailable || currentUser !== null;
+  signInButton.disabled = !authAvailable || currentUser !== null;
   logoutButton.hidden = currentUser === null;
 
   if (!configured) {
@@ -215,14 +223,14 @@ function updateAuthUi() {
 
   if (!secureAuth) {
     authState.textContent = "Secure host required";
-    setAuthMessage("Google sign-in is disabled on this page because it is not running on HTTPS or localhost. Open the HTTPS deployed URL or run on localhost to use Firebase Auth safely.");
+    setAuthMessage("Sign-in is disabled on this page because it is not running on HTTPS or localhost. Open the HTTPS deployed URL or run on localhost to use Firebase Auth safely.");
     bestScore.textContent = "-";
     return;
   }
 
   if (!currentUser) {
     authState.textContent = "Signed out";
-    setAuthMessage("Sign in with Google to save your lifetime highest score.");
+    setAuthMessage("Create an account or sign in to save your lifetime highest score.");
     lifetimeBest = null;
     render();
     return;
@@ -248,15 +256,61 @@ async function hydrateUserProfile(user) {
   render();
 }
 
-async function handleGoogleLogin() {
-  try {
-    const user = await loginWithGoogle();
-    if (user) {
-      setAuthMessage("Signed in successfully.");
-      return;
+function readCredentials(requireConfirmPassword = false) {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const confirmPassword = confirmPasswordInput.value;
+
+  if (!email || !password) {
+    setAuthMessage("Enter both email and password.");
+    return null;
+  }
+
+  if (requireConfirmPassword) {
+    if (!confirmPassword) {
+      setAuthMessage("Confirm your password to create the account.");
+      return null;
     }
 
-    setAuthMessage("Continuing with Google sign-in...");
+    if (password !== confirmPassword) {
+      setAuthMessage("Password and confirm password do not match.");
+      return null;
+    }
+  }
+
+  return { email, password };
+}
+
+function clearCredentials() {
+  passwordInput.value = "";
+  confirmPasswordInput.value = "";
+}
+
+async function handleCreateAccount() {
+  const credentials = readCredentials(true);
+  if (!credentials) {
+    return;
+  }
+
+  try {
+    await createAccountWithEmail(credentials.email, credentials.password);
+    clearCredentials();
+    setAuthMessage("Account created and signed in successfully.");
+  } catch (error) {
+    setAuthMessage(getAuthErrorMessage(error));
+  }
+}
+
+async function handleSignIn() {
+  const credentials = readCredentials(false);
+  if (!credentials) {
+    return;
+  }
+
+  try {
+    await signInWithEmail(credentials.email, credentials.password);
+    clearCredentials();
+    setAuthMessage("Signed in successfully.");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
   }
@@ -265,6 +319,8 @@ async function handleGoogleLogin() {
 async function handleLogout() {
   try {
     await logoutCurrentUser();
+    emailInput.value = "";
+    clearCredentials();
     setAuthMessage("Signed out.");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
@@ -278,7 +334,8 @@ gameLoop();
 document.addEventListener("keydown", handleKeydown);
 pauseButton.addEventListener("click", togglePause);
 restartButton.addEventListener("click", resetGame);
-googleLoginButton.addEventListener("click", handleGoogleLogin);
+createAccountButton.addEventListener("click", handleCreateAccount);
+signInButton.addEventListener("click", handleSignIn);
 logoutButton.addEventListener("click", handleLogout);
 
 for (const button of controlButtons) {
@@ -291,15 +348,6 @@ void startAuth();
 
 async function startAuth() {
   await initializeFirebase();
-  try {
-    const redirectUser = await completePendingGoogleRedirect();
-    if (redirectUser) {
-      setAuthMessage("Signed in successfully.");
-    }
-  } catch (error) {
-    setAuthMessage(getAuthErrorMessage(error));
-  }
-
   updateAuthUi();
   watchAuthState((user) => {
     void hydrateUserProfile(user);
