@@ -20,7 +20,8 @@ Then visit `http://localhost:8000`.
 2. Add a Web app to that project.
 3. Enable `Authentication` and turn on `Email/Password`.
 4. Create a `Cloud Firestore` database.
-5. Copy your Firebase web config into [firebase-config.js](C:\Users\Shannu\OneDrive - Indian Institute of Technology Indian School of Mines Dhanbad\Documents\New project\firebase-config.js).
+5. Add your deployed site domain in `Authentication > Settings > Authorized domains` if you are running on Vercel or another host.
+6. Copy your Firebase web config into [firebase-config.js](C:\Users\Shannu\OneDrive - Indian Institute of Technology Indian School of Mines Dhanbad\Documents\New project\firebase-config.js).
 
 Use Firestore rules like this so each signed-in user can only read and write their own score:
 
