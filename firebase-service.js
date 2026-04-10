@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
-  createUserWithEmailAndPassword,
   getAuth,
+  GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 import {
@@ -25,6 +25,7 @@ const enabled = hasFirebaseConfig(firebaseConfig);
 const app = enabled ? initializeApp(firebaseConfig) : null;
 const auth = enabled ? getAuth(app) : null;
 const db = enabled ? getFirestore(app) : null;
+const googleProvider = enabled ? new GoogleAuthProvider() : null;
 
 export function isFirebaseEnabled() {
   return enabled;
@@ -47,22 +48,12 @@ export function watchAuthState(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-export async function registerWithEmail(email, password) {
+export async function loginWithGoogle() {
   if (!enabled) {
     throw new Error("Firebase is not configured yet.");
   }
 
-  const result = await createUserWithEmailAndPassword(auth, email, password);
-  await ensureUserProfile(result.user);
-  return result.user;
-}
-
-export async function loginWithEmail(email, password) {
-  if (!enabled) {
-    throw new Error("Firebase is not configured yet.");
-  }
-
-  const result = await signInWithEmailAndPassword(auth, email, password);
+  const result = await signInWithPopup(auth, googleProvider);
   await ensureUserProfile(result.user);
   return result.user;
 }
@@ -71,23 +62,19 @@ export function getAuthErrorMessage(error) {
   const code = error?.code ?? "";
 
   if (code === "auth/configuration-not-found") {
-    return "Firebase Email/Password sign-in is not fully configured. Enable Authentication > Sign-in method > Email/Password and add your site domain in Authentication > Settings > Authorized domains.";
+    return "Firebase sign-in is not fully configured. Enable Authentication > Sign-in method > Google and add your site domain in Authentication > Settings > Authorized domains.";
   }
 
-  if (code === "auth/invalid-credential") {
-    return "Invalid email or password.";
+  if (code === "auth/popup-closed-by-user") {
+    return "The Google sign-in popup was closed before finishing.";
   }
 
-  if (code === "auth/invalid-email") {
-    return "Enter a valid email address.";
+  if (code === "auth/popup-blocked") {
+    return "Your browser blocked the Google sign-in popup. Allow popups for this site and try again.";
   }
 
-  if (code === "auth/email-already-in-use") {
-    return "This email is already registered. Try signing in instead.";
-  }
-
-  if (code === "auth/weak-password") {
-    return "Password should be at least 6 characters.";
+  if (code === "auth/unauthorized-domain") {
+    return "This domain is not authorized in Firebase yet. Add your Vercel domain under Authentication > Settings > Authorized domains.";
   }
 
   if (code === "auth/network-request-failed") {

@@ -8,10 +8,9 @@ import {
   getAuthErrorMessage,
   isFirebaseEnabled,
   isSecureAuthContext,
+  loginWithGoogle,
   loadUserProfile,
-  loginWithEmail,
   logoutCurrentUser,
-  registerWithEmail,
   saveHighScore,
   watchAuthState,
 } from "./firebase-service.js";
@@ -23,19 +22,10 @@ const status = document.querySelector("#status");
 const pauseButton = document.querySelector("#pause-button");
 const restartButton = document.querySelector("#restart-button");
 const controlButtons = Array.from(document.querySelectorAll("[data-direction]"));
-const authForm = document.querySelector("#auth-form");
-const emailInput = document.querySelector("#email-input");
-const passwordInput = document.querySelector("#password-input");
-const confirmPasswordInput = document.querySelector("#confirm-password-input");
 const authState = document.querySelector("#auth-state");
 const authMessage = document.querySelector("#auth-message");
-const loginButton = document.querySelector("#login-button");
-const signupButton = document.querySelector("#signup-button");
+const googleLoginButton = document.querySelector("#google-login-button");
 const logoutButton = document.querySelector("#logout-button");
-const passwordVisibilityButton = document.querySelector("#password-visibility-button");
-const confirmPasswordVisibilityButton = document.querySelector(
-  "#confirm-password-visibility-button",
-);
 
 const cells = [];
 let gameState = createInitialState();
@@ -145,33 +135,7 @@ function togglePause() {
   render();
 }
 
-function isTypingTarget(target) {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-
-  const tagName = target.tagName;
-  return (
-    target.isContentEditable ||
-    tagName === "INPUT" ||
-    tagName === "TEXTAREA" ||
-    tagName === "SELECT"
-  );
-}
-
-function togglePasswordVisibility(input, button, showLabel, hideLabel) {
-  const showingPassword = input.type === "text";
-  input.type = showingPassword ? "password" : "text";
-  const nextLabel = showingPassword ? showLabel : hideLabel;
-  button.setAttribute("aria-label", nextLabel);
-  button.setAttribute("title", nextLabel);
-}
-
 function handleKeydown(event) {
-  if (isTypingTarget(event.target)) {
-    return;
-  }
-
   const key = event.key.toLowerCase();
   const directionByKey = {
     arrowup: "UP",
@@ -237,14 +201,8 @@ function updateAuthUi() {
   const secureAuth = isSecureAuthContext();
   const authAvailable = configured && secureAuth;
 
-  emailInput.disabled = !authAvailable || currentUser !== null;
-  passwordInput.disabled = !authAvailable || currentUser !== null;
-  confirmPasswordInput.disabled = !authAvailable || currentUser !== null;
-  loginButton.disabled = !authAvailable || currentUser !== null;
-  signupButton.disabled = !authAvailable || currentUser !== null;
+  googleLoginButton.disabled = !authAvailable || currentUser !== null;
   logoutButton.hidden = currentUser === null;
-  passwordVisibilityButton.disabled = !authAvailable || currentUser !== null;
-  confirmPasswordVisibilityButton.disabled = !authAvailable || currentUser !== null;
 
   if (!configured) {
     authState.textContent = "Firebase not set";
@@ -255,14 +213,14 @@ function updateAuthUi() {
 
   if (!secureAuth) {
     authState.textContent = "Secure host required";
-    setAuthMessage("Password sign-in is disabled on this page because it is not running on HTTPS or localhost. Open the HTTPS deployed URL or run on localhost to use Firebase Auth safely.");
+    setAuthMessage("Google sign-in is disabled on this page because it is not running on HTTPS or localhost. Open the HTTPS deployed URL or run on localhost to use Firebase Auth safely.");
     bestScore.textContent = "-";
     return;
   }
 
   if (!currentUser) {
     authState.textContent = "Signed out";
-    setAuthMessage("Sign in to save your lifetime highest score.");
+    setAuthMessage("Sign in with Google to save your lifetime highest score.");
     lifetimeBest = null;
     render();
     return;
@@ -288,52 +246,10 @@ async function hydrateUserProfile(user) {
   render();
 }
 
-async function handleAuthSubmit(event) {
-  event.preventDefault();
-
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  if (!email || !password) {
-    setAuthMessage("Enter both email and password.");
-    return;
-  }
-
+async function handleGoogleLogin() {
   try {
-    await loginWithEmail(email, password);
-    passwordInput.value = "";
-    confirmPasswordInput.value = "";
+    await loginWithGoogle();
     setAuthMessage("Signed in successfully.");
-  } catch (error) {
-    setAuthMessage(getAuthErrorMessage(error));
-  }
-}
-
-async function handleSignup() {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-
-  if (!email || !password) {
-    setAuthMessage("Enter both email and password.");
-    return;
-  }
-
-  if (!confirmPassword) {
-    setAuthMessage("Please confirm your password.");
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    setAuthMessage("Password and confirm password must match.");
-    return;
-  }
-
-  try {
-    await registerWithEmail(email, password);
-    passwordInput.value = "";
-    confirmPasswordInput.value = "";
-    setAuthMessage("Account created.");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
   }
@@ -342,9 +258,6 @@ async function handleSignup() {
 async function handleLogout() {
   try {
     await logoutCurrentUser();
-    emailInput.value = "";
-    passwordInput.value = "";
-    confirmPasswordInput.value = "";
     setAuthMessage("Signed out.");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
@@ -362,25 +275,8 @@ watchAuthState((user) => {
 document.addEventListener("keydown", handleKeydown);
 pauseButton.addEventListener("click", togglePause);
 restartButton.addEventListener("click", resetGame);
-authForm.addEventListener("submit", handleAuthSubmit);
-signupButton.addEventListener("click", handleSignup);
+googleLoginButton.addEventListener("click", handleGoogleLogin);
 logoutButton.addEventListener("click", handleLogout);
-passwordVisibilityButton.addEventListener("click", () => {
-  togglePasswordVisibility(
-    passwordInput,
-    passwordVisibilityButton,
-    "Show password",
-    "Hide password",
-  );
-});
-confirmPasswordVisibilityButton.addEventListener("click", () => {
-  togglePasswordVisibility(
-    confirmPasswordInput,
-    confirmPasswordVisibilityButton,
-    "Show confirm password",
-    "Hide confirm password",
-  );
-});
 
 for (const button of controlButtons) {
   button.addEventListener("click", () => {

@@ -1,12 +1,12 @@
 # Snake
 
-Small Snake game for this repo with Firebase Auth and Firestore-backed lifetime high scores.
+Small Snake game for this repo with Firebase Google sign-in and Firestore-backed lifetime high scores.
 
 ## Run
 
 Open `index.html` in a browser.
 
-If you plan to use sign-in, do not use `file://` directly for passwords. Use your HTTPS deployed URL or run on `localhost`.
+If you plan to use sign-in, do not use `file://` directly. Use your HTTPS deployed URL or run on `localhost`.
 
 If you want a local server and already have Python installed:
 
@@ -20,7 +20,7 @@ Then visit `http://localhost:8000`.
 
 1. Create a Firebase project in the Firebase console.
 2. Add a Web app to that project.
-3. Enable `Authentication` and turn on `Email/Password`.
+3. Enable `Authentication` and turn on `Google`.
 4. Create a `Cloud Firestore` database.
 5. Add your deployed site domain in `Authentication > Settings > Authorized domains` if you are running on Vercel or another host.
 6. Copy your Firebase web config into [firebase-config.js](C:\Users\Shannu\OneDrive - Indian Institute of Technology Indian School of Mines Dhanbad\Documents\New project\firebase-config.js).
@@ -46,6 +46,6 @@ service cloud.firestore {
 - Confirm `Space` pauses and resumes the game.
 - Confirm `Restart` resets the board, score, and snake length.
 - Confirm the game ends when the snake hits a wall or itself.
-- Create an account or sign in with email and password.
+- Sign in with Google.
 - Confirm the lifetime best score appears after sign-in.
 - Confirm a new higher score is saved and still appears after refresh/sign-in again.
