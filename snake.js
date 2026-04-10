@@ -7,6 +7,7 @@ import {
 import {
   getAuthErrorMessage,
   isFirebaseEnabled,
+  isSecureAuthContext,
   loadUserProfile,
   loginWithEmail,
   logoutCurrentUser,
@@ -233,17 +234,28 @@ function setAuthMessage(message) {
 
 function updateAuthUi() {
   const configured = isFirebaseEnabled();
+  const secureAuth = isSecureAuthContext();
+  const authAvailable = configured && secureAuth;
 
-  emailInput.disabled = !configured || currentUser !== null;
-  passwordInput.disabled = !configured || currentUser !== null;
-  confirmPasswordInput.disabled = !configured || currentUser !== null;
-  loginButton.disabled = !configured || currentUser !== null;
-  signupButton.disabled = !configured || currentUser !== null;
+  emailInput.disabled = !authAvailable || currentUser !== null;
+  passwordInput.disabled = !authAvailable || currentUser !== null;
+  confirmPasswordInput.disabled = !authAvailable || currentUser !== null;
+  loginButton.disabled = !authAvailable || currentUser !== null;
+  signupButton.disabled = !authAvailable || currentUser !== null;
   logoutButton.hidden = currentUser === null;
+  passwordVisibilityButton.disabled = !authAvailable || currentUser !== null;
+  confirmPasswordVisibilityButton.disabled = !authAvailable || currentUser !== null;
 
   if (!configured) {
     authState.textContent = "Firebase not set";
     setAuthMessage("Add your Firebase project values in firebase-config.js to enable sign in.");
+    bestScore.textContent = "-";
+    return;
+  }
+
+  if (!secureAuth) {
+    authState.textContent = "Secure host required";
+    setAuthMessage("Password sign-in is disabled on this page because it is not running on HTTPS or localhost. Open the HTTPS deployed URL or run on localhost to use Firebase Auth safely.");
     bestScore.textContent = "-";
     return;
   }

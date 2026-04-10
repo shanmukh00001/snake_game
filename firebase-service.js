@@ -30,6 +30,14 @@ export function isFirebaseEnabled() {
   return enabled;
 }
 
+export function isSecureAuthContext() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  return window.isSecureContext || window.location.hostname === "localhost";
+}
+
 export function watchAuthState(callback) {
   if (!enabled) {
     callback(null);

@@ -6,6 +6,8 @@ Small Snake game for this repo with Firebase Auth and Firestore-backed lifetime 
 
 Open `index.html` in a browser.
 
+If you plan to use sign-in, do not use `file://` directly for passwords. Use your HTTPS deployed URL or run on `localhost`.
+
 If you want a local server and already have Python installed:
 
 ```bash
