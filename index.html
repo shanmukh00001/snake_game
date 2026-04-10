@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="panel">
+      <div class="topbar">
+        <div>
+          <p class="eyebrow">Classic Snake</p>
+          <h1>Snake</h1>
+        </div>
+        <div class="scorecard" aria-live="polite">
+          <span class="scorecard-label">Score</span>
+          <strong id="score">0</strong>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <p id="status">Use arrow keys or WASD to start playing.</p>
+        <div class="actions">
+          <button id="pause-button" type="button">Pause</button>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </div>
+
+      <div
+        id="board"
+        class="board"
+        role="grid"
+        aria-label="Snake game board"
+      ></div>
+
+      <div class="controls" aria-label="Touch controls">
+        <button class="control up" type="button" data-direction="UP">Up</button>
+        <button class="control left" type="button" data-direction="LEFT">Left</button>
+        <button class="control down" type="button" data-direction="DOWN">Down</button>
+        <button class="control right" type="button" data-direction="RIGHT">Right</button>
+      </div>
+
+      <p class="hint">
+        Controls: Arrow keys or WASD to move, Space to pause or resume, Restart to reset.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="./snake.js"></script>
+</body>
+</html>

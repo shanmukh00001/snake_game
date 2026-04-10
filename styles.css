@@ -1,0 +1,179 @@
+:root {
+  --bg: #f5f1e8;
+  --panel: #fffaf0;
+  --grid: #d6cfbe;
+  --text: #2f352c;
+  --muted: #6b705f;
+  --snake: #476c4a;
+  --snake-head: #2f5233;
+  --food: #b85042;
+  --button: #ebe2d0;
+  --button-border: #b9ad97;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.panel {
+  width: min(100%, 560px);
+  background: var(--panel);
+  border: 1px solid var(--button-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(47, 53, 44, 0.08);
+}
+
+.topbar,
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.eyebrow,
+.hint,
+#status,
+.scorecard-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+h1 {
+  margin: 4px 0 0;
+  font-size: 2rem;
+}
+
+.scorecard {
+  text-align: right;
+}
+
+.scorecard strong {
+  display: block;
+  font-size: 2rem;
+}
+
+.status-row {
+  margin-top: 18px;
+  align-items: flex-start;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid var(--button-border);
+  background: var(--button);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e2d6c1;
+}
+
+.board {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 2px;
+  background: var(--grid);
+  padding: 2px;
+  border-radius: 12px;
+  aspect-ratio: 1;
+  touch-action: none;
+}
+
+.cell {
+  background: #f8f5ee;
+  border-radius: 4px;
+}
+
+.cell.snake {
+  background: var(--snake);
+}
+
+.cell.head {
+  background: var(--snake-head);
+}
+
+.cell.food {
+  background: var(--food);
+}
+
+.controls {
+  margin: 18px auto 0;
+  width: min(220px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  grid-template-areas:
+    ". up ."
+    "left down right";
+}
+
+.control.up {
+  grid-area: up;
+}
+
+.control.left {
+  grid-area: left;
+}
+
+.control.down {
+  grid-area: down;
+}
+
+.control.right {
+  grid-area: right;
+}
+
+.hint {
+  margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+  .panel {
+    padding: 16px;
+  }
+
+  .topbar,
+  .status-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scorecard {
+    text-align: left;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
