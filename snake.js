@@ -30,14 +30,11 @@ const emailInput = document.querySelector("#email-input");
 const passwordInput = document.querySelector("#password-input");
 const confirmPasswordInput = document.querySelector("#confirm-password-input");
 const confirmPasswordField = document.querySelector("#confirm-password-field");
-const createAccountButton = document.querySelector("#create-account-button");
-const signInButton = document.querySelector("#sign-in-button");
+const primaryAuthButton = document.querySelector("#primary-auth-button");
 const logoutButton = document.querySelector("#logout-button");
-const authFormTitle = document.querySelector("#auth-form-title");
-const authSwitchSignin = document.querySelector("#auth-switch-signin");
-const authSwitchCreate = document.querySelector("#auth-switch-create");
-const linkCreateAccount = document.querySelector("#link-create-account");
-const linkBackSignin = document.querySelector("#link-back-signin");
+const authModeHint = document.querySelector("#auth-mode-hint");
+const authTabSignin = document.querySelector("#auth-tab-signin");
+const authTabCreate = document.querySelector("#auth-tab-create");
 
 const cells = [];
 let gameState = createInitialState();
@@ -236,6 +233,10 @@ function setAuthMode(mode) {
   authMode = mode;
   const isCreate = mode === "create";
 
+  authTabSignin.classList.toggle("is-active", !isCreate);
+  authTabCreate.classList.toggle("is-active", isCreate);
+  authTabSignin.setAttribute("aria-selected", String(!isCreate));
+  authTabCreate.setAttribute("aria-selected", String(isCreate));
   confirmPasswordField.hidden = !isCreate;
   confirmPasswordInput.disabled = !isCreate;
   if (!isCreate) {
@@ -243,9 +244,10 @@ function setAuthMode(mode) {
   }
 
   passwordInput.autocomplete = isCreate ? "new-password" : "current-password";
-
-  signInButton.hidden = isCreate;
-  createAccountButton.hidden = !isCreate;
+  primaryAuthButton.textContent = isCreate ? "Create account" : "Sign in";
+  authModeHint.textContent = isCreate
+    ? "Create a new account with email, password, and confirm password."
+    : "Use your email and password to sign in.";
 }
 
 function updateAuthUi() {
@@ -257,26 +259,10 @@ function updateAuthUi() {
   emailInput.disabled = formLocked;
   passwordInput.disabled = formLocked;
   confirmPasswordInput.disabled = formLocked || authMode === "signin";
-  createAccountButton.disabled = formLocked;
-  signInButton.disabled = formLocked;
+  primaryAuthButton.disabled = formLocked;
+  authTabSignin.disabled = formLocked;
+  authTabCreate.disabled = formLocked;
   logoutButton.hidden = currentUser === null;
-
-  if (authFormTitle) {
-    authFormTitle.hidden = currentUser !== null;
-    if (!currentUser) {
-      authFormTitle.textContent = authMode === "create" ? "Create account" : "Sign in";
-    }
-  }
-
-  if (authSwitchSignin && authSwitchCreate) {
-    if (currentUser !== null) {
-      authSwitchSignin.hidden = true;
-      authSwitchCreate.hidden = true;
-    } else {
-      authSwitchSignin.hidden = authMode === "create";
-      authSwitchCreate.hidden = authMode === "signin";
-    }
-  }
 
   if (!configured) {
     authState.textContent = "Firebase not set";
@@ -384,6 +370,15 @@ async function handleSignIn() {
   }
 }
 
+function handlePrimaryAuth() {
+  if (authMode === "create") {
+    void handleCreateAccount();
+    return;
+  }
+
+  void handleSignIn();
+}
+
 async function handleLogout() {
   try {
     await logoutCurrentUser();
@@ -402,22 +397,19 @@ gameLoop();
 document.addEventListener("keydown", handleKeydown);
 pauseButton.addEventListener("click", togglePause);
 restartButton.addEventListener("click", resetGame);
-createAccountButton.addEventListener("click", handleCreateAccount);
-signInButton.addEventListener("click", handleSignIn);
+primaryAuthButton.addEventListener("click", handlePrimaryAuth);
 logoutButton.addEventListener("click", handleLogout);
 
-linkCreateAccount.addEventListener("click", (event) => {
-  event.preventDefault();
+authTabCreate.addEventListener("click", () => {
   setAuthMode("create");
   updateAuthUi();
-  confirmPasswordInput.focus();
+  emailInput.focus();
 });
 
-linkBackSignin.addEventListener("click", (event) => {
-  event.preventDefault();
+authTabSignin.addEventListener("click", () => {
   setAuthMode("signin");
   updateAuthUi();
-  passwordInput.focus();
+  emailInput.focus();
 });
 
 for (const input of [emailInput, passwordInput, confirmPasswordInput]) {

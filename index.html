@@ -30,7 +30,26 @@
             </div>
 
             <div class="auth-form" id="auth-form-panel">
-              <p class="auth-form-title" id="auth-form-title">Sign in</p>
+              <div class="auth-tabs" role="tablist" aria-label="Account mode">
+                <button
+                  id="auth-tab-signin"
+                  class="auth-tab is-active"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                >
+                  Sign in
+                </button>
+                <button
+                  id="auth-tab-create"
+                  class="auth-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                >
+                  Create account
+                </button>
+              </div>
 
               <label class="field">
                 <span>Email</span>
@@ -47,17 +66,13 @@
                 <input id="confirm-password-input" type="password" autocomplete="new-password" />
               </label>
 
-              <div class="actions auth-actions">
-                <button id="sign-in-button" type="button">Sign in</button>
-                <button id="create-account-button" type="button" hidden>Create account</button>
+              <div class="auth-actions">
+                <button id="primary-auth-button" type="button">Sign in</button>
                 <button id="logout-button" type="button" hidden>Sign out</button>
               </div>
 
-              <p class="auth-switch" id="auth-switch-signin">
-                <a href="#" id="link-create-account" class="auth-link">Create a new account</a>
-              </p>
-              <p class="auth-switch" id="auth-switch-create" hidden>
-                <a href="#" id="link-back-signin" class="auth-link">Already have an account? Sign in</a>
+              <p id="auth-mode-hint" class="auth-switch">
+                Use your email and password to sign in.
               </p>
             </div>
 
