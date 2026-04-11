@@ -1,8 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
@@ -71,6 +73,10 @@ export function getAuthErrorMessage(error) {
     return "Firebase sign-in is not fully configured. Enable Authentication > Sign-in method > Email/Password and add your site domain in Authentication > Settings > Authorized domains.";
   }
 
+  if (code === "auth/operation-not-allowed") {
+    return "Email/password sign-in is turned off in Firebase. In the Firebase console open Authentication > Sign-in method and enable Email/Password.";
+  }
+
   if (code === "auth/email-already-in-use") {
     return "That email already has an account. Use Sign In instead.";
   }
@@ -115,8 +121,12 @@ export async function loadUserProfile(uid) {
     return null;
   }
 
-  const snapshot = await getDoc(doc(db, "scores", uid));
-  return snapshot.exists() ? snapshot.data() : null;
+  try {
+    const snapshot = await getDoc(doc(db, "scores", uid));
+    return snapshot.exists() ? snapshot.data() : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveHighScore(user, score) {
@@ -126,26 +136,30 @@ export async function saveHighScore(user, score) {
     return null;
   }
 
-  const ref = doc(db, "scores", user.uid);
-  const snapshot = await getDoc(ref);
-  const currentHigh = snapshot.exists() ? snapshot.data().highestScore ?? 0 : 0;
+  try {
+    const ref = doc(db, "scores", user.uid);
+    const snapshot = await getDoc(ref);
+    const currentHigh = snapshot.exists() ? snapshot.data().highestScore ?? 0 : 0;
 
-  if (score <= currentHigh) {
-    return currentHigh;
+    if (score <= currentHigh) {
+      return currentHigh;
+    }
+
+    await setDoc(
+      ref,
+      {
+        uid: user.uid,
+        email: user.email ?? "",
+        highestScore: score,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    return score;
+  } catch {
+    return null;
   }
-
-  await setDoc(
-    ref,
-    {
-      uid: user.uid,
-      email: user.email ?? "",
-      highestScore: score,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
-
-  return score;
 }
 
 async function ensureUserProfile(user) {
@@ -153,23 +167,27 @@ async function ensureUserProfile(user) {
     return;
   }
 
-  const ref = doc(db, "scores", user.uid);
-  const snapshot = await getDoc(ref);
+  try {
+    const ref = doc(db, "scores", user.uid);
+    const snapshot = await getDoc(ref);
 
-  if (snapshot.exists()) {
-    return;
+    if (snapshot.exists()) {
+      return;
+    }
+
+    await setDoc(
+      ref,
+      {
+        uid: user.uid,
+        email: user.email ?? "",
+        highestScore: 0,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+  } catch {
+    // Auth already succeeded; Firestore rules or network must not block sign-in.
   }
-
-  await setDoc(
-    ref,
-    {
-      uid: user.uid,
-      email: user.email ?? "",
-      highestScore: 0,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
 }
 
 export async function initializeFirebase() {
@@ -187,6 +205,11 @@ export async function initializeFirebase() {
 
     app = initializeApp(config);
     auth = getAuth(app);
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch {
+      // Use default persistence if explicit local persistence is unavailable.
+    }
     db = getFirestore(app);
     enabled = true;
     return true;

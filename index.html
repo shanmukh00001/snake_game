@@ -29,10 +29,38 @@
               <p id="auth-state" class="auth-state">Signed out</p>
             </div>
 
-            <div class="auth-form">
+            <div
+              class="auth-mode-tabs"
+              id="auth-mode-tabs"
+              role="tablist"
+              aria-label="Sign in or create account"
+            >
+              <button
+                type="button"
+                id="auth-mode-sign-in"
+                class="auth-mode-tab is-active"
+                role="tab"
+                aria-selected="true"
+                aria-controls="auth-form-panel"
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                id="auth-mode-create"
+                class="auth-mode-tab"
+                role="tab"
+                aria-selected="false"
+                aria-controls="auth-form-panel"
+              >
+                Create account
+              </button>
+            </div>
+
+            <div class="auth-form" id="auth-form-panel" role="tabpanel">
               <label class="field">
                 <span>Email</span>
-                <input id="email-input" type="email" autocomplete="email" />
+                <input id="email-input" type="email" autocomplete="email" inputmode="email" />
               </label>
 
               <label class="field">
@@ -40,20 +68,20 @@
                 <input id="password-input" type="password" autocomplete="current-password" />
               </label>
 
-              <label class="field">
-                <span>Confirm Password</span>
+              <label class="field" id="confirm-password-field" hidden>
+                <span>Confirm password</span>
                 <input id="confirm-password-input" type="password" autocomplete="new-password" />
               </label>
 
               <div class="actions auth-actions">
-                <button id="create-account-button" type="button">Create Account</button>
-                <button id="sign-in-button" type="button">Sign In</button>
-                <button id="logout-button" type="button" hidden>Sign Out</button>
+                <button id="sign-in-button" type="button">Sign in</button>
+                <button id="create-account-button" type="button" hidden>Create account</button>
+                <button id="logout-button" type="button" hidden>Sign out</button>
               </div>
             </div>
 
             <p id="auth-message" class="hint">
-              Create a new account once, then sign in later to keep your lifetime best score.
+              Sign in with email and password, or create an account to save your lifetime best score.
             </p>
           </section>
 

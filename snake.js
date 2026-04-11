@@ -29,15 +29,21 @@ const authMessage = document.querySelector("#auth-message");
 const emailInput = document.querySelector("#email-input");
 const passwordInput = document.querySelector("#password-input");
 const confirmPasswordInput = document.querySelector("#confirm-password-input");
+const confirmPasswordField = document.querySelector("#confirm-password-field");
 const createAccountButton = document.querySelector("#create-account-button");
 const signInButton = document.querySelector("#sign-in-button");
 const logoutButton = document.querySelector("#logout-button");
+const authModeSignIn = document.querySelector("#auth-mode-sign-in");
+const authModeCreate = document.querySelector("#auth-mode-create");
+const authModeTabs = document.querySelector("#auth-mode-tabs");
 
 const cells = [];
 let gameState = createInitialState();
 let pendingDirection = null;
 let currentUser = null;
 let lifetimeBest = null;
+/** @type {"signin" | "create"} */
+let authMode = "signin";
 
 function buildBoard() {
   const fragment = document.createDocumentFragment();
@@ -224,17 +230,40 @@ function setAuthMessage(message) {
   authMessage.textContent = message;
 }
 
+function setAuthMode(mode) {
+  authMode = mode;
+  const isCreate = mode === "create";
+
+  authModeSignIn.setAttribute("aria-selected", String(!isCreate));
+  authModeCreate.setAttribute("aria-selected", String(isCreate));
+  authModeSignIn.classList.toggle("is-active", !isCreate);
+  authModeCreate.classList.toggle("is-active", isCreate);
+
+  confirmPasswordField.hidden = !isCreate;
+  confirmPasswordInput.disabled = !isCreate;
+  if (!isCreate) {
+    confirmPasswordInput.value = "";
+  }
+
+  passwordInput.autocomplete = isCreate ? "new-password" : "current-password";
+
+  signInButton.hidden = isCreate;
+  createAccountButton.hidden = !isCreate;
+}
+
 function updateAuthUi() {
   const configured = isFirebaseEnabled();
   const secureAuth = isSecureAuthContext();
   const authAvailable = configured && secureAuth;
+  const formLocked = !authAvailable || currentUser !== null;
 
-  emailInput.disabled = !authAvailable || currentUser !== null;
-  passwordInput.disabled = !authAvailable || currentUser !== null;
-  confirmPasswordInput.disabled = !authAvailable || currentUser !== null;
-  createAccountButton.disabled = !authAvailable || currentUser !== null;
-  signInButton.disabled = !authAvailable || currentUser !== null;
+  emailInput.disabled = formLocked;
+  passwordInput.disabled = formLocked;
+  confirmPasswordInput.disabled = formLocked || authMode === "signin";
+  createAccountButton.disabled = formLocked;
+  signInButton.disabled = formLocked;
   logoutButton.hidden = currentUser === null;
+  authModeTabs.hidden = currentUser !== null;
 
   if (!configured) {
     authState.textContent = "Firebase not set";
@@ -253,6 +282,7 @@ function updateAuthUi() {
   if (!currentUser) {
     authState.textContent = "Signed out";
     setAuthMessage("Create an account or sign in to save your lifetime highest score.");
+    setAuthMode(authMode);
     lifetimeBest = null;
     render();
     return;
@@ -360,6 +390,16 @@ createAccountButton.addEventListener("click", handleCreateAccount);
 signInButton.addEventListener("click", handleSignIn);
 logoutButton.addEventListener("click", handleLogout);
 
+authModeSignIn.addEventListener("click", () => {
+  setAuthMode("signin");
+  updateAuthUi();
+});
+
+authModeCreate.addEventListener("click", () => {
+  setAuthMode("create");
+  updateAuthUi();
+});
+
 for (const input of [emailInput, passwordInput, confirmPasswordInput]) {
   input.addEventListener("keydown", (event) => {
     event.stopPropagation();
@@ -376,7 +416,6 @@ void startAuth();
 
 async function startAuth() {
   await initializeFirebase();
-  updateAuthUi();
   watchAuthState((user) => {
     void hydrateUserProfile(user);
   });
