@@ -345,7 +345,8 @@ async function handleCreateAccount() {
   }
 
   try {
-    await createAccountWithEmail(credentials.email, credentials.password);
+    const user = await createAccountWithEmail(credentials.email, credentials.password);
+    await hydrateUserProfile(user);
     clearCredentials();
     setAuthMessage("Account created and signed in successfully.");
   } catch (error) {
@@ -360,7 +361,8 @@ async function handleSignIn() {
   }
 
   try {
-    await signInWithEmail(credentials.email, credentials.password);
+    const user = await signInWithEmail(credentials.email, credentials.password);
+    await hydrateUserProfile(user);
     clearCredentials();
     setAuthMessage("Signed in successfully.");
   } catch (error) {
@@ -416,6 +418,7 @@ void startAuth();
 
 async function startAuth() {
   await initializeFirebase();
+  updateAuthUi();
   watchAuthState((user) => {
     void hydrateUserProfile(user);
   });
