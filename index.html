@@ -29,35 +29,9 @@
               <p id="auth-state" class="auth-state">Signed out</p>
             </div>
 
-            <div
-              class="auth-mode-tabs"
-              id="auth-mode-tabs"
-              role="tablist"
-              aria-label="Sign in or create account"
-            >
-              <button
-                type="button"
-                id="auth-mode-sign-in"
-                class="auth-mode-tab is-active"
-                role="tab"
-                aria-selected="true"
-                aria-controls="auth-form-panel"
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                id="auth-mode-create"
-                class="auth-mode-tab"
-                role="tab"
-                aria-selected="false"
-                aria-controls="auth-form-panel"
-              >
-                Create account
-              </button>
-            </div>
+            <div class="auth-form" id="auth-form-panel">
+              <p class="auth-form-title" id="auth-form-title">Sign in</p>
 
-            <div class="auth-form" id="auth-form-panel" role="tabpanel">
               <label class="field">
                 <span>Email</span>
                 <input id="email-input" type="email" autocomplete="email" inputmode="email" />
@@ -78,10 +52,17 @@
                 <button id="create-account-button" type="button" hidden>Create account</button>
                 <button id="logout-button" type="button" hidden>Sign out</button>
               </div>
+
+              <p class="auth-switch" id="auth-switch-signin">
+                <a href="#" id="link-create-account" class="auth-link">Create a new account</a>
+              </p>
+              <p class="auth-switch" id="auth-switch-create" hidden>
+                <a href="#" id="link-back-signin" class="auth-link">Already have an account? Sign in</a>
+              </p>
             </div>
 
             <p id="auth-message" class="hint">
-              Sign in with email and password, or create an account to save your lifetime best score.
+              Sign in with your email and password, or create an account to save your lifetime best score.
             </p>
           </section>
 
