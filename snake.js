@@ -33,9 +33,11 @@ const confirmPasswordField = document.querySelector("#confirm-password-field");
 const createAccountButton = document.querySelector("#create-account-button");
 const signInButton = document.querySelector("#sign-in-button");
 const logoutButton = document.querySelector("#logout-button");
-const authModeSignIn = document.querySelector("#auth-mode-sign-in");
-const authModeCreate = document.querySelector("#auth-mode-create");
-const authModeTabs = document.querySelector("#auth-mode-tabs");
+const authFormTitle = document.querySelector("#auth-form-title");
+const authSwitchSignin = document.querySelector("#auth-switch-signin");
+const authSwitchCreate = document.querySelector("#auth-switch-create");
+const linkCreateAccount = document.querySelector("#link-create-account");
+const linkBackSignin = document.querySelector("#link-back-signin");
 
 const cells = [];
 let gameState = createInitialState();
@@ -234,11 +236,6 @@ function setAuthMode(mode) {
   authMode = mode;
   const isCreate = mode === "create";
 
-  authModeSignIn.setAttribute("aria-selected", String(!isCreate));
-  authModeCreate.setAttribute("aria-selected", String(isCreate));
-  authModeSignIn.classList.toggle("is-active", !isCreate);
-  authModeCreate.classList.toggle("is-active", isCreate);
-
   confirmPasswordField.hidden = !isCreate;
   confirmPasswordInput.disabled = !isCreate;
   if (!isCreate) {
@@ -263,7 +260,23 @@ function updateAuthUi() {
   createAccountButton.disabled = formLocked;
   signInButton.disabled = formLocked;
   logoutButton.hidden = currentUser === null;
-  authModeTabs.hidden = currentUser !== null;
+
+  if (authFormTitle) {
+    authFormTitle.hidden = currentUser !== null;
+    if (!currentUser) {
+      authFormTitle.textContent = authMode === "create" ? "Create account" : "Sign in";
+    }
+  }
+
+  if (authSwitchSignin && authSwitchCreate) {
+    if (currentUser !== null) {
+      authSwitchSignin.hidden = true;
+      authSwitchCreate.hidden = true;
+    } else {
+      authSwitchSignin.hidden = authMode === "create";
+      authSwitchCreate.hidden = authMode === "signin";
+    }
+  }
 
   if (!configured) {
     authState.textContent = "Firebase not set";
@@ -296,6 +309,7 @@ async function hydrateUserProfile(user) {
   if (!user) {
     currentUser = null;
     lifetimeBest = null;
+    authMode = "signin";
     updateAuthUi();
     render();
     return;
@@ -348,7 +362,7 @@ async function handleCreateAccount() {
     const user = await createAccountWithEmail(credentials.email, credentials.password);
     await hydrateUserProfile(user);
     clearCredentials();
-    setAuthMessage("Account created and signed in successfully.");
+    setAuthMessage("Account created. You are signed in.");
   } catch (error) {
     setAuthMessage(getAuthErrorMessage(error));
   }
@@ -392,14 +406,18 @@ createAccountButton.addEventListener("click", handleCreateAccount);
 signInButton.addEventListener("click", handleSignIn);
 logoutButton.addEventListener("click", handleLogout);
 
-authModeSignIn.addEventListener("click", () => {
-  setAuthMode("signin");
-  updateAuthUi();
-});
-
-authModeCreate.addEventListener("click", () => {
+linkCreateAccount.addEventListener("click", (event) => {
+  event.preventDefault();
   setAuthMode("create");
   updateAuthUi();
+  confirmPasswordInput.focus();
+});
+
+linkBackSignin.addEventListener("click", (event) => {
+  event.preventDefault();
+  setAuthMode("signin");
+  updateAuthUi();
+  passwordInput.focus();
 });
 
 for (const input of [emailInput, passwordInput, confirmPasswordInput]) {
